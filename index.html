@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudiantes</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+</head>
+<body>
+    <div class="container">
+        <section class="section registro">
+            <div class="title box-shadow">
+                <h2><i class="fad fa-users-class"></i> Registro de estudiantes</h2>
+            </div>
+            <div class="form box-shadow">
+                <form id="formulario">
+                    <div class="nombre control">
+                        <label for="nombres">Nombre</label>
+                        <input type="text" name="nombres" id="nombres" placeholder="Ingrese nombres" required>
+                    </div>
+                    <div class="apellido control">
+                        <label for="apellidos">Apellido</label>
+                        <input type="text" name="apellidos" id="apellidos" placeholder="Ingrese apellidos" required>
+                    </div>
+                    <div class="matricula control">
+                        <label for="matricula">Matrícula</label>
+                        <input type="text" name="matricula" id="matricula" placeholder="Ingrese matrícula" required>
+                    </div>
+                    <div class="calificacion control">
+                        <label for="calificacion">Calificación</label>
+                        <input type="number" name="calificacion" id="calificacion" placeholder="Calificación" required>
+                    </div>
+                    <div class="btn-container">
+                        <button type="submit" id="guardar" class="btn save" onclick="saveStudent()">Guardar</button>
+                        <button type="reset" id="limpiar" class="btn clean">Limpiar</button>
+                        <button type="button" id="cancelar" class="btn cancel" onclick="cancelarEditEstudiante()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <section id="lista" class="section lista">
+            <div class="title box-shadow">
+                <h2><i class="fad fa-list-ul"></i> Lista de estudiantes</h2>
+            </div>
+            <div class="table-container box-shadow">
+                <table id="estudiantes" class="table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Nombres</th>
+                            <th>Apellidos</th>
+                            <th>Matrícula</th>
+                            <th>Calificación</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="promedio-container box-shadow">
+                <h4>Promedio: <span id="promedio">0</span></h4>
+            </div>
+        </section>
+        <div id="toast">
+            <div class="toast-content">
+                <h3 id="title" class="toast-title"></h3>
+                <p id="message" class="toast-message"></p>
+            </div>
+        </div>
+        <div id="btnToTop" class="scroll-to-top">
+            <button onclick="goTo(0)">
+                <i class="fad fa-angle-up"></i>
+            </button>
+        </div>
+    </div>
+<script src="script.js"></script>
+</body>
+</html>
