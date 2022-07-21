@@ -8,18 +8,31 @@ const toastMessage = document.getElementById("message");
 const listSection = document.getElementById("lista");
 const ListaEstudiantes = document.getElementById("estudiantes").getElementsByTagName("tbody")[0];
 const promedio = document.getElementById("promedio");
-const estudiantes = [];
+const detallesSection = document.getElementById("detalles");
+let estudiantes = [];
 
 
 //--------------------------------------------Eventos-------------------------------------------------------
 
-window.onscroll = () => {
+onscroll = () => {
     scrollTop();
 }
 
-btnGuardar.addEventListener("click", (e)=>{
+btnGuardar.addEventListener("click", (e) => {
     e.preventDefault();
 })
+
+
+addEventListener("beforeunload", () => {
+    sessionStorage.setItem("estudiantes", JSON.stringify(estudiantes));
+});
+
+onload = () => {
+    estudiantes = JSON.parse(sessionStorage.getItem("estudiantes"));
+    mostrarSeccionLista(true);
+    agregarEstudiantesALista();
+    mostrarPromedio();
+}
 
 //-----------------------------------------------Scroll----------------------------------------------------
 
@@ -39,18 +52,14 @@ const goTo = (direccionY) => {
 // ---------------------------------------------Clase------------------------------------------------------
 
 class Estudiante {
-    id;
-    nombres;
-    apellidos;
-    matricula;
-    calificacion;
 
-    constructor(id, nombres, apellidos, matricula, calificacion){
+    constructor(id, nombres, apellidos, matricula, calificacion, descripcion){
         this.id = id;
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.matricula = matricula;
         this.calificacion = calificacion;
+        this.descripcion = descripcion;
     }
 }
 
@@ -59,47 +68,37 @@ class Estudiante {
 const saveStudent = (id) => {
     const formulario = document.getElementById('formulario');
     const formData = new FormData(formulario);
-    let mensaje = "";
 
     const nombres = formData.get("nombres");
     const apellidos = formData.get("apellidos");
     const matricula = formData.get("matricula"); 
-    const calificacion = formData.get("calificacion"); 
+    let calificacion = formData.get("calificacion"); 
 
     if(nombres === "" || apellidos === "" || matricula === "" || calificacion === ""){
         mostrarToast("error", "Datos incompletos", "Todos los campos deben ser completados.")
         return;
     }
-
-    if(Number(calificacion) < 0 || Number(calificacion) > 100){
+    calificacion = Number(calificacion);
+    if(calificacion < 0 || calificacion > 100){
         mostrarToast("warning", "Dato incorrecto", "Se debe ingresar un numero entre 1 y 100 como calificación.")
         return;
     }
 
-    let estudiante;
-
     if(id){
-        estudiante = new Estudiante(id, nombres, apellidos, matricula, Number(calificacion))
+        editarEstudiante(id, {nombres: nombres, apellidos: apellidos, matricula: matricula, calificacion: calificacion, descripcion: descripcionEstudiante(calificacion)})
     }
     else{
         let newId = estudiantes.length === 0 ? 1 : estudiantes[estudiantes.length - 1].id + 1;
-        estudiante = new Estudiante(newId, nombres, apellidos, matricula, Number(calificacion))
+        estudiantes.push(new Estudiante(newId, nombres, apellidos, matricula, calificacion, descripcionEstudiante(calificacion)));
     }
-
-    estudiantes.push(estudiante);
-    
-    if(id){
-        borrarEstudiante(id);
-    }
-
-    mensaje = `El estudiante <span id="estudiante">${estudiante.nombres + " " + estudiante.apellidos}</span> fue ${id ? 'editado' : 'agregado'} con exito.`
-    mostrarToast("success", `¡${id ? 'Editado' : 'Agregado'}!`, mensaje);
-    agregarEstudianteALista(estudiante);
+    let titulo = id ? 'Editado' : 'Agregado';
+    let mensaje = `El estudiante <span id="estudiante">${nombres + " " + apellidos}</span> fue ${titulo.toLowerCase()} con exito.`
+    mostrarToast("success", `¡${titulo}!`, mensaje);
+    agregarEstudiantesALista();
     mostrarPromedio();
 
     if(id){
-        document.getElementById("guardar").innerText = "Guardar";
-        document.getElementById("guardar").setAttribute('onclick', `saveStudent()`);
+        cancelarEditEstudiante();
     }
     else{
         mostrarSeccionLista(true)
@@ -107,19 +106,68 @@ const saveStudent = (id) => {
     }
 }
 
+const editarEstudiante = (id, estudianteNewInfo) => {
+    estudiantes.map(estudiante => {
+        if(estudiante.id === id){
+            estudiante.nombres = estudianteNewInfo.nombres;
+            estudiante.apellidos = estudianteNewInfo.apellidos;
+            estudiante.matricula = estudianteNewInfo.matricula;
+            estudiante.calificacion = estudianteNewInfo.calificacion;
+            estudiante.descripcion = estudianteNewInfo.descripcion;
+        }
+    })
+}
+
 const borrarEstudiante = (id) => {
-    estudiantes.splice(id - 1, 1);
-    document.getElementById(id).remove();
-    mensaje = `El estudiante fue eliminado con exito.`;
-    mostrarToast("success", "¡Eliminado!", mensaje);
+    const index = estudiantes.findIndex(estudiante => estudiante.id === id);
+    estudiantes.splice(index, 1);
 
     if(estudiantes.length === 0){
         mostrarSeccionLista(false);
     }
     else{
+        agregarEstudiantesALista();
         mostrarPromedio();
     }
+    
+    mensaje = `El estudiante fue eliminado con exito.`;
+    mostrarToast("success", "¡Eliminado!", mensaje);
 }
+
+const mostrarEstudianteDetalles = (id) => {
+    detallesSection.style.display = "flex"
+    const estudiante = estudiantes.find(estudiante => estudiante.id === id);
+    const contenido = detallesSection.getElementsByClassName("detalles-content")[0];
+    contenido.innerHTML = `
+    <p><span>Nombres:</span> ${estudiante.nombres}</p> 
+    <p><span>Apelidos:</span> ${estudiante.apellidos}</p>
+    <p><span>Matrícula:</span> ${estudiante.matricula}</p>
+    <p><span>Calificación:</span> <span style='color: ${estudiante.calificacion >= 69 ? 'rgb(2, 163, 2)' : 'red'} !important'>${estudiante.calificacion} puntos</span></p>
+    <p><span>Descripción:</span> ${estudiante.descripcion}</p>`;
+}
+
+const cerrarSectionDetalles = () => {
+    detallesSection.style.display = "none";
+}
+
+//-------Agregar una descripción------//
+const descripcionEstudiante = (calificacion) => {
+    let descripcion = "";
+
+    if(calificacion > 85 && calificacion < 101)
+        descripcion = "Este e' uno o una de lo' lambone'. Que vaya al colmado a comprar con esa nota, pa' que tu vea."
+    else if(calificacion > 70 && calificacion < 86)
+        descripcion = "Este ta más o menos. Ta pasao.";
+    else if(calificacion === 70)
+        descripcion = "Este muchacho ta' con Dio', eso fue que el profesor le regaló el punto que le faltaba pa' pasar.";
+    else if(calificacion > 59 && calificacion < 70)
+        descripcion = "A este el profesor le tenía tirria, ya que ni si quiera le regaló do' o tre' puntos pa' pasar.";
+    else if(calificacion < 60)
+        descripcion = "Bueeeenoooo manito... ¡Usted se la acaba de beber usted solo! Deja que la mai vea esa nota, van a tene que depegalo del suelo. XD"
+
+    return descripcion;
+}
+//------------------------------------//
 
 // ----------------------------------Manejo del formulario--------------------------------------------
 
@@ -139,7 +187,7 @@ const cancelarEditEstudiante = () => {
 
 const setEstudiante = (id) => {
 
-    let estudiante = estudiantes.find(value => value.id == id);
+    let estudiante = estudiantes.find(estudiante => estudiante.id === id);
 
     document.getElementById("nombres").value = estudiante.nombres;
     document.getElementById("apellidos").value = estudiante.apellidos;
@@ -179,33 +227,36 @@ const ocultarToast = () => {
 const mostrarSeccionLista = (desicion) => {
     listSection.style.display = desicion ? "block" : "none";
 }
+const agregarEstudiantesALista = () => {
+    ListaEstudiantes.textContent = '';
+    for(let i = 0; i < estudiantes.length; i++) 
+    {
+        const fila = ListaEstudiantes.insertRow(i);
+        const numeroRegistro = fila.insertCell(0);
+        const nombresFila = fila.insertCell(1);
+        const apellidosFila = fila.insertCell(2);
+        const matriculaFila = fila.insertCell(3);
+        const calificaionFila = fila.insertCell(4);
+        const accionFila = fila.insertCell(5);
+        fila.id = estudiantes[i].id;
 
-const agregarEstudianteALista = (estudiante) => {
-    const fila = ListaEstudiantes.insertRow(estudiantes.length - 1);
+        numeroRegistro.innerText = i + 1;
+        nombresFila.innerText = estudiantes[i].nombres;
+        apellidosFila.innerText = estudiantes[i].apellidos;
+        matriculaFila.innerText = estudiantes[i].matricula;
+        calificaionFila.innerText = estudiantes[i].calificacion;
+        calificaionFila.style.color = estudiantes[i].calificacion >= 70 ? "rgb(2, 163, 2)" : "red"; 
 
-    const numeroFila = fila.insertCell(0);
-    const nombresFila = fila.insertCell(1);
-    const apellidosFila = fila.insertCell(2);
-    const matriculaFila = fila.insertCell(3);
-    const calificaionFila = fila.insertCell(4);
-    const accionFila = fila.insertCell(5);
-    fila.id = estudiante.id;
-
-    numeroFila.innerText = estudiantes.length;
-    nombresFila.innerText = estudiante.nombres;
-    apellidosFila.innerText = estudiante.apellidos;
-    matriculaFila.innerText = estudiante.matricula;
-    calificaionFila.innerText = estudiante.calificacion;
-    calificaionFila.style.color = estudiante.calificacion >= 70 ? "rgb(2, 163, 2)" : "red"; 
-
-    accionFila.innerHTML = `<button class="btn btn-accion editar" onclick="setEstudiante(${estudiante.id})"><i class="fad fa-pencil-alt"></i></button>
-    <button class="btn btn-accion borrar" onclick="borrarEstudiante(${estudiante.id})"><i class="fad fa-trash-alt"></i></button>`
+        accionFila.innerHTML = `<button class="btn btn-accion editar" onclick="setEstudiante(${estudiantes[i].id})"><i class="fad fa-pencil-alt"></i></button>
+        <button class="btn btn-accion borrar" onclick="borrarEstudiante(${estudiantes[i].id})"><i class="fad fa-trash-alt"></i></button>
+        <button class="btn btn-accion detalle" onclick="mostrarEstudianteDetalles(${estudiantes[i].id})"><i class="fad fa-file-alt"></i></button>`
+    }
 }
 
 // ----------------------------------Manejo del promedio--------------------------------------------
 
 const mostrarPromedio = () => {
-    promedio.innerText = conseguirPromedio().toFixed();
+    promedio.innerText = conseguirPromedio().toFixed(1);
 }
 
 const conseguirPromedio = () => {
@@ -219,4 +270,3 @@ const conseguirPromedio = () => {
     
     return promedio;
 }
-
