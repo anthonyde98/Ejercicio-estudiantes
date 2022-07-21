@@ -29,9 +29,11 @@ addEventListener("beforeunload", () => {
 
 onload = () => {
     estudiantes = JSON.parse(sessionStorage.getItem("estudiantes"));
-    mostrarSeccionLista(true);
-    agregarEstudiantesALista();
-    mostrarPromedio();
+    if(estudiantes.length > 0){
+        mostrarSeccionLista(true);
+        agregarEstudiantesALista();
+        mostrarPromedio();
+    }
 }
 
 //-----------------------------------------------Scroll----------------------------------------------------
