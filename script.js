@@ -9,8 +9,8 @@ const listSection = document.getElementById("lista");
 const ListaEstudiantes = document.getElementById("estudiantes").getElementsByTagName("tbody")[0];
 const promedio = document.getElementById("promedio");
 const detallesSection = document.getElementById("detalles");
+const eliminarSection = document.getElementById("eliminar");
 let estudiantes = [];
-
 
 //--------------------------------------------Eventos-------------------------------------------------------
 
@@ -28,7 +28,7 @@ addEventListener("beforeunload", () => {
 });
 
 onload = () => {
-    estudiantes = JSON.parse(sessionStorage.getItem("estudiantes"));
+    estudiantes = JSON.parse(sessionStorage.getItem("estudiantes")) || [];
     if(estudiantes.length > 0){
         mostrarSeccionLista(true);
         agregarEstudiantesALista();
@@ -120,25 +120,13 @@ const editarEstudiante = (id, estudianteNewInfo) => {
     })
 }
 
-const borrarEstudiante = (id) => {
-    const index = estudiantes.findIndex(estudiante => estudiante.id === id);
-    estudiantes.splice(index, 1);
-
-    if(estudiantes.length === 0){
-        mostrarSeccionLista(false);
-    }
-    else{
-        agregarEstudiantesALista();
-        mostrarPromedio();
-    }
-    
-    mensaje = `El estudiante fue eliminado con exito.`;
-    mostrarToast("success", "¡Eliminado!", mensaje);
+const buscarEstudiantePorId = (id) => {
+    return estudiantes.find(estudiante => estudiante.id === id);
 }
 
 const mostrarEstudianteDetalles = (id) => {
     detallesSection.style.display = "flex"
-    const estudiante = estudiantes.find(estudiante => estudiante.id === id);
+    const estudiante = buscarEstudiantePorId(id);
     const contenido = detallesSection.getElementsByClassName("detalles-content")[0];
     contenido.innerHTML = `
     <p><span>Nombres:</span> ${estudiante.nombres}</p> 
@@ -151,6 +139,39 @@ const mostrarEstudianteDetalles = (id) => {
 const cerrarSectionDetalles = () => {
     detallesSection.style.display = "none";
 }
+
+const borrarEstudiante = (id) => {
+    const index = estudiantes.findIndex(estudiante => estudiante.id === id);
+    estudiantes.splice(index, 1);
+    cerrarSectionEliminar();
+    
+    if(estudiantes.length === 0){
+        mostrarSeccionLista(false);
+    }
+    else{
+        agregarEstudiantesALista();
+        mostrarPromedio();
+    }
+    
+    mensaje = `El estudiante fue eliminado con exito.`;
+    mostrarToast("success", "¡Eliminado!", mensaje);
+}
+
+const mostrarEstudianteEliminar = (id) => {
+    eliminarSection.style.display = "flex";
+    const estudiante = buscarEstudiantePorId(id);
+    const nombre = eliminarSection.getElementsByClassName("eliminar-nombre")[0];
+    nombre.innerText = estudiante.nombres + " " + estudiante.apellidos;
+    const btns = eliminarSection.getElementsByClassName("eliminar-btns")[0];
+    btns.innerHTML = `
+    <button type="button" class="btn btn-cancelar" onclick="cerrarSectionEliminar()">Cancelar</button>
+    <button type="button" class="btn btn-confirmar" onclick="borrarEstudiante(${id})">Confirmar</button>`;
+}
+
+const cerrarSectionEliminar = () => {
+    eliminarSection.style.display = "none";
+}
+
 
 //-------Agregar una descripción------//
 const descripcionEstudiante = (calificacion) => {
@@ -189,7 +210,7 @@ const cancelarEditEstudiante = () => {
 
 const setEstudiante = (id) => {
 
-    let estudiante = estudiantes.find(estudiante => estudiante.id === id);
+    let estudiante = buscarEstudiantePorId(id);
 
     document.getElementById("nombres").value = estudiante.nombres;
     document.getElementById("apellidos").value = estudiante.apellidos;
@@ -250,7 +271,7 @@ const agregarEstudiantesALista = () => {
         calificaionFila.style.color = estudiantes[i].calificacion >= 70 ? "rgb(2, 163, 2)" : "red"; 
 
         accionFila.innerHTML = `<button class="btn btn-accion editar" onclick="setEstudiante(${estudiantes[i].id})"><i class="fad fa-pencil-alt"></i></button>
-        <button class="btn btn-accion borrar" onclick="borrarEstudiante(${estudiantes[i].id})"><i class="fad fa-trash-alt"></i></button>
+        <button class="btn btn-accion borrar" onclick="mostrarEstudianteEliminar(${estudiantes[i].id})"><i class="fad fa-trash-alt"></i></button>
         <button class="btn btn-accion detalle" onclick="mostrarEstudianteDetalles(${estudiantes[i].id})"><i class="fad fa-file-alt"></i></button>`
     }
 }

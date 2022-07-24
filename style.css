@@ -284,7 +284,7 @@ input:focus {
     cursor: pointer;
 }
 
-.detalles{
+.detalles, .eliminar{
     background-color: rgba(0, 0, 0, 0.512);
     position: fixed;
     width: 100%;
@@ -298,15 +298,18 @@ input:focus {
 }
 
 .detalles-container{
+    min-width: 350px;
+    width: 600px;
+    height: 250px;
+}
+
+.detalles-container, .eliminar .eliminar-container{
     background-color: rgb(235, 235, 235);
     padding: 30px;
     padding-bottom: 15px;
     border-radius: 30px;
     box-shadow: 0 3px 4px rgba(0, 0, 0, 0.500);
-    width: 600px;
-    height: 250px;
     margin: 20px;
-    min-width: 350px;
 }
 
 .detalles-content{
@@ -331,8 +334,46 @@ input:focus {
     text-align:justify;
 }
 
-.detalles .detalles-content span{
+.detalles .detalles-content span, .eliminar .eliminar-container span{
     font-weight: bold;
+}
+
+.eliminar .eliminar-container{
+    width: 350px;
+    height: 150px;
+    min-width: 250px;
+    text-align: center;
+}
+
+.eliminar .eliminar-container .eliminar-btns{
+    margin-top: 20px;
+}
+
+.eliminar-btns .btn{
+    padding: 10px;
+    border-radius: 15px;
+    background-color: rgb(231, 231, 231);
+}
+
+.eliminar-btns .btn-cancelar{
+    border: 1px solid gray;
+}
+
+.eliminar-btns .btn-confirmar{
+    border: 1px solid rgb(200, 26, 26);
+}
+
+.eliminar-btns .btn:hover{
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+    border: 1px solid transparent;
+}
+
+.eliminar-btns .btn-cancelar:hover{
+    background-color: rgb(212, 212, 212);
+}
+
+.eliminar-btns .btn-confirmar:hover{
+    background-color: rgb(185, 61, 61);
 }
 
 @keyframes bounceInUp {
